@@ -6,20 +6,20 @@ import jwt
 from config import SECRET_KEY
 
 
-class Merchant(MongoModel):
+class Client(MongoModel):
     id = fields.ObjectIdField(primary_key=True)
     name = fields.CharField()
-    description = fields.CharField()
+    email = fields.EmailField()
 
     class Meta:
         write_concern = WriteConcern(j=True)
         connection_alias = 'snap-app'
 
     def __str__(self):
-        return '%s %s' % (self.name, self.description)
+        return '%s - %s' % (self.name, self.email)
 
     def encode_auth_token(self):
-        user_id = str(self.id)
+        user_id = str(self._id)
         try:
             payload = {
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=5),
@@ -35,12 +35,12 @@ class Merchant(MongoModel):
             return e
 
     def to_dict(self, with_token=False):
-        merchant = {
-            '_id': str(self.id),
+        client = {
+            '_id': str(self._id),
             'name': self.name,
             'description': self.name,
         }
 
         if with_token:
-            merchant['token'] = self.encode_auth_token()
-        return merchant
+            client['token'] = self.encode_auth_token()
+        return client
